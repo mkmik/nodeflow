@@ -43,12 +43,9 @@ var app = new Collector(function (err) {
             var sFlags = db.get(flow.src + "_" + flow.dst + "_flags") || 0;
             var dFlags = db.get(flow.dst + "_" + flow.src + "_flags") || 0;
 
-            var srcComps = flow.src.split(':');
-            var dstComps = flow.dst.split(':');
-            var tcpFlow = new ip.TcpFlow(srcComps[0], srcComps[1], dstComps[0], dstComps[1], sFlags, dFlags);
+            var tcpFlow = new ip.TcpFlow(flow, sFlags, dFlags);
 
             var state = tcpFlow.state();
-
             console.log("got tcp netflow " + flow.src + " -> " + flow.dst + " (0x"+sFlags.toString(16)+" 0x"+dFlags.toString(16)+") state: " + state);
         } else {
 //            console.log("unhandled ip packet", raw);
