@@ -33,6 +33,8 @@ var app = new Collector(function (err) {
 .on("listening",function() { console.log("listening", port); } )
 
 .on("packet",function(nflow) {
+    var toUpdate = {};
+
     nflow.v5Flows.forEach(function(raw) {
         var netflow = ip.parsePacket(raw);
         if(netflow) {
@@ -69,16 +71,20 @@ var app = new Collector(function (err) {
                 dFlags: tcpFlow.dFlags
             };
 
-            var eat = mFlowAttrs;
-            Flow.findOneAndUpdate({id:eat.id}, mFlowAttrs, {upsert: true}, function(err, obj) {
-                if(err)
-                    console.log("CANNOT UPDATE");
-            });
-
+            toUpdate[mFlowAttrs.id] = mFlowAttrs;
         } else {
 //            console.log("unhandled ip packet", raw);
         }
     });
+
+    console.log("WRITING");
+    for(var k in toUpdate) {
+        var attrs = toUpdate[k];
+        Flow.findOneAndUpdate({id:attrs.id}, attrs, {upsert: true}, function(err, obj) {
+            if(err)
+                console.log("CANNOT UPDATE");
+        });
+    }
 });
 
 if(argv.d) {
