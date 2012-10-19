@@ -2,8 +2,8 @@ var Collector = require("Netflow");
 var reloader = require('reloader');
 var argv = require('optimist').argv;
 
-var port = 9996;
-//port = 2055;
+var port = argv.p || 9996;
+
 
 var tcp_flags = {};
 tcp_flags["FIN"] = 0x1 << 0;
@@ -67,3 +67,4 @@ if(argv.d) {
 } else {
     app.listen(port);
 }
+
