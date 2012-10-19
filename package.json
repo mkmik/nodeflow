@@ -22,9 +22,8 @@
     ],
     "private": true,
     "dependencies": {
-        "Netflow": "*"
-    },
-    "devDependencies": {
-        "supervisor": "*"
+        "Netflow": "*",
+        "optimist": "*",
+        "reloader": "*"
     }
 }

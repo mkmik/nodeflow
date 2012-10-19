@@ -34,7 +34,7 @@ module.exports = function(grunt) {
         var util = require('util');
 
         var done = this.async();
-        var p = exec('node_modules/.bin/supervisor app' , {}, function(err) {
+        var p = exec('node app -d' , {}, function(err) {
             done();
         });
 

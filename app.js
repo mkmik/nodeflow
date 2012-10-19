@@ -1,4 +1,6 @@
 var Collector = require("Netflow");
+var reloader = require('reloader');
+var argv = require('optimist').argv;
 
 var port = 9996;
 //port = 2055;
@@ -14,7 +16,7 @@ tcp_flags["ECN"] = 0x1 << 6;
 tcp_flags["CWN"] = 0x1 << 7;
 tcp_flags["NNC"] = 0x1 << 8;
 
-var x = new Collector(function (err) {
+var app = new Collector(function (err) {
     if(err != null) {
         console.log("ERROR ERROR \n"+err);
     }
@@ -43,9 +45,9 @@ var x = new Collector(function (err) {
         var ff = flow.tcp_flags;
         if(ff != 0) {
             var ffl = flags(ff);
-/*            if(ffl.SYN && !ffl.ACK)
+            if(ffl.SYN && !ffl.ACK)
                 console.log("New connection", flow.srcaddr, flow.srcport, flow.dstaddr, flow.dstport, "FLAAAGS", "0x" + ff.toString(16), renderFlags(ffl));
-*/
+
             if(renderIp(flow.srcaddr) == '146.48.87.66' || renderIp(flow.srcaddr) == '146.48.122.92')
                 console.log("from me", renderIp(flow.srcaddr), flow.srcport, renderIp(flow.dstaddr), flow.dstport, "FLAAAGS", "0x" + ff.toString(16), renderFlags(ffl));
 
@@ -54,6 +56,14 @@ var x = new Collector(function (err) {
 //            console.log("boring Packet", flow.srcaddr, flow.srcport, flow.dstaddr, flow.dstport, "FLAAAGS", "0x" + flow.tcp_flags.toString(16), flags(flow.tcp_flags));
 
     });
-})
+});
 
-.listen(port);
+if(argv.d) {
+    reloader({
+        watchModules: true,
+        onReload: function () {
+            app.listen(port);
+        }});
+} else {
+    app.listen(port);
+}
