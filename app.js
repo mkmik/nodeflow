@@ -13,7 +13,7 @@ var flowSchema = mongoose.Schema({
     src: 'string',
     dst: 'string',
     state: 'string'
-});
+}, { strict: false });
 
 var Flow = mdb.model('Flow', flowSchema);
 
@@ -58,15 +58,16 @@ var app = new Collector(function (err) {
 
             var state = tcpFlow.state();
 
-
             console.log("got tcp netflow " + flow.src + " -> " + flow.dst + " (0x"+sFlags.toString(16)+" 0x"+dFlags.toString(16)+") state: " + state);
 
             var mFlowAttrs = {
                 id: netflow.unordered(),
                 src: flow.src,
                 dst: flow.dst,
-                state: state
-            }
+                state: state,
+                sFlags: tcpFlow.sFlags,
+                dFlags: tcpFlow.dFlags
+            };
 
             var eat = mFlowAttrs;
             Flow.findOneAndUpdate({id:eat.id}, mFlowAttrs, {upsert: true}, function(err, obj) {
