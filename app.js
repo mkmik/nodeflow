@@ -5,6 +5,17 @@ var reloader = require('reloader');
 var ip = require('./lib/ip');
 var argv = require('optimist').argv;
 var LRU = require("lru-cache");
+var mongoose = require('mongoose');
+
+var mdb = mongoose.createConnection('localhost', 'nodeflow');
+var flowSchema = mongoose.Schema({
+    id: 'string',
+    src: 'string',
+    dst: 'string',
+    state: 'string'
+});
+
+var Flow = mdb.model('Flow', flowSchema);
 
 var db = LRU({
     max: 500000,
@@ -46,7 +57,23 @@ var app = new Collector(function (err) {
             var tcpFlow = new ip.TcpFlow(flow, sFlags, dFlags);
 
             var state = tcpFlow.state();
+
+
             console.log("got tcp netflow " + flow.src + " -> " + flow.dst + " (0x"+sFlags.toString(16)+" 0x"+dFlags.toString(16)+") state: " + state);
+
+            var mFlowAttrs = {
+                id: netflow.unordered(),
+                src: flow.src,
+                dst: flow.dst,
+                state: state
+            }
+
+            var eat = mFlowAttrs;
+            Flow.findOneAndUpdate({id:eat.id}, mFlowAttrs, {upsert: true}, function(err, obj) {
+                if(err)
+                    console.log("CANNOT UPDATE");
+            });
+
         } else {
 //            console.log("unhandled ip packet", raw);
         }

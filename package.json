@@ -24,6 +24,9 @@
     "dependencies": {
         "Netflow": "*",
         "optimist": "*",
+        "lru-cache": "*",
+        "mongoose": "*",
+        "redis": "*",
         "reloader": "*"
     }
 }
