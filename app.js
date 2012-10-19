@@ -78,11 +78,30 @@ var app = new Collector(function (err) {
     });
 
     console.log("WRITING");
+
+    function store(attrs) {
+        var flow = new Flow(attrs);
+        flow.save(function(err) {
+            if(err)
+                console.log("CANNOT SAVE", flow);
+        });
+    }
+
     for(var k in toUpdate) {
         var attrs = toUpdate[k];
-        Flow.findOneAndUpdate({id:attrs.id}, attrs, {upsert: true}, function(err, obj) {
-            if(err)
-                console.log("CANNOT UPDATE");
+
+        Flow.findOne({id:attrs.id}, function(err, obj) {
+            var boundAttrs = attrs;
+            if(obj) {
+                obj.remove(function(err) {
+                    if(err)
+                        console.log("CANNOT REMOVE", obj);
+                    else
+                        store(boundAttrs);
+                });
+            } else {
+                store(boundAttrs);
+            }
         });
     }
 });
