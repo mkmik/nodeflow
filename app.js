@@ -6,7 +6,7 @@ var ip = require('./lib/ip');
 var argv = require('optimist').argv;
 var LRU = require("lru-cache");
 
-var potentialConnections = LRU({
+var db = LRU({
     max: 500000,
     maxAge: 1000 * 600
 });
@@ -23,25 +23,33 @@ var app = new Collector(function (err) {
 
 .on("packet",function(nflow) {
     nflow.v5Flows.forEach(function(raw) {
-        var packet = ip.parsePacket(raw);
-//        if(packet && (packet.src == '146.48.122.92' | packet.dst == '146.48.122.92')) {
-        if(packet) {
-//            console.log("GOT PACKET FROM MYSELF", packet.isStartOfConnection, packet.flags, '0x' + packet.rawFlags.toString(16));
+        var netflow = ip.parsePacket(raw);
+        if(netflow) {
+            var key;
 
-            if(packet.isStartOfConnection) {
-                var key = packet.dstEndpoint();
-                potentialConnections.set(key, packet);
+            key = netflow.ordered() + "_flags";
+            var oldFlags = db.get(key);
+            db.set(key, (oldFlags || 0) | netflow.rawFlags);
 
-//                console.log("added to cache", key);
-//                console.log("got potential start of connection. Waiting for", key);
-            } else if(packet.isAckOfConnection) {
-                var key = packet.srcEndpoint();
-                var orig = potentialConnections.get(key);
-//                console.log("checking cache", key, orig);
-                if(orig) {
-                    console.log("got connection established", orig);
-}
-            }
+            key = netflow.unordered() + "_flow" ;
+            var flow;
+            if(netflow.sport > netflow.dport)
+               flow = {src: netflow.srcEndpoint(), dst: netflow.dstEndpoint()};
+            else
+               flow = {src: netflow.dstEndpoint(), dst: netflow.srcEndpoint()};
+
+            db.set(key, flow);
+
+            var sFlags = db.get(flow.src + "_" + flow.dst + "_flags") || 0;
+            var dFlags = db.get(flow.dst + "_" + flow.src + "_flags") || 0;
+
+            var srcComps = flow.src.split(':');
+            var dstComps = flow.dst.split(':');
+            var tcpFlow = new ip.TcpFlow(srcComps[0], srcComps[1], dstComps[0], dstComps[1], sFlags, dFlags);
+
+            var state = tcpFlow.state();
+
+            console.log("got tcp netflow " + flow.src + " -> " + flow.dst + " (0x"+sFlags.toString(16)+" 0x"+dFlags.toString(16)+") state: " + state);
         } else {
 //            console.log("unhandled ip packet", raw);
         }
@@ -57,4 +65,3 @@ if(argv.d) {
 } else {
     app.listen(port);
 }
-
