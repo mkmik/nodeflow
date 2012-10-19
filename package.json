@@ -1,0 +1,30 @@
+{
+    "name": "nodeflow",
+    "version": "0.0.1",
+    "description": "NodeFlow",
+    "maintainers": [
+        {
+            "name": "Marko Mikulicic",
+            "email": "marko.mikulicic@isti.cnr.it"
+        } 
+    ],
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "http://www.opensource.org/licenses/mit-license.php"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "git", 
+            "url": "git://gitorious.research-infrastructures.eu/infrastructure-management/nodeflow.git"
+        }
+    ],
+    "private": true,
+    "dependencies": {
+        "Netflow": "*"
+    },
+    "devDependencies": {
+        "supervisor": "*"
+    }
+}
