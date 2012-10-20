@@ -29,16 +29,22 @@ module.exports = function(grunt) {
         }
     });
 
-    grunt.registerTask('dev', function() {
-        var exec = require('child_process').exec;
-        var util = require('util');
+    function cmd(command) {
+        return function() {
+            var exec = require('child_process').exec;
+            var util = require('util');
 
-        var done = this.async();
-        var p = exec('node app -d' , {}, function(err) {
-            done();
-        });
+            var done = this.async();
+            var p = exec(command , {}, function(err) {
+                done();
+            });
 
-        util.pump(p.stdout, process.stdout);
-        util.pump(p.stderr, process.stderr);
-    });
+            util.pump(p.stdout, process.stdout);
+            util.pump(p.stderr, process.stderr);
+        };
+    }
+
+    grunt.registerTask('dev', cmd('node app -d'));
+    grunt.registerTask('replay', cmd('flow-send <flows 0/127.0.0.1/9996'));
+
 };
