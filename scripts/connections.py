@@ -23,8 +23,7 @@ states = defaultdict(lambda: 0)
 
 VALID_DOMAINS = ['research-infrastructures.eu', 'cern.ch', 'isti.cnr.it', 'ifh.de']
 
-KNOWN_NETWORKS = ['127.0.0', '146.48', '137.13', '194.171', '141.34', '192.108']
-
+KNOWN_NETWORKS = ['127.0.0', '146.48', '137.13', '194.171', '141.34', '192.108', '128.142.164']
 if hasattr(socket, 'setdefaulttimeout'):
     # Set the default timeout on sockets to 5 seconds
     socket.setdefaulttimeout(2)
