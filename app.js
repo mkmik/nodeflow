@@ -38,18 +38,19 @@ var app = new Collector(function (err) {
     if(pdus % 100 == 0)
         console.log("GOT PACKET:", packetCount, "PDU: ", pdus);
 
-    var toUpdate = {};
+    var toUpdate = [];
 
     nflow.v5Flows.forEach(function(raw) {
         var netflow = ip.parsePacket(raw);
         if(netflow) {
-            var key;
+            var unordered = netflow.unordered();
 
+            var key;
             key = netflow.ordered() + "_flags";
             var oldFlags = db.get(key);
             db.set(key, (oldFlags || 0) | netflow.rawFlags);
 
-            key = netflow.unordered() + "_flow" ;
+            key = unordered + "_flow" ;
             var flow;
             if(netflow.sport > netflow.dport)
                flow = {src: netflow.srcEndpoint(), dst: netflow.dstEndpoint()};
@@ -67,33 +68,19 @@ var app = new Collector(function (err) {
 
 //            console.log("got tcp netflow " + flow.src + " -> " + flow.dst + " (0x"+sFlags.toString(16)+" 0x"+dFlags.toString(16)+") state: " + state);
 
-            var mFlowAttrs = {
-                id: netflow.unordered(),
-                src: flow.src,
-                dst: flow.dst,
-                state: state,
-                sFlags: tcpFlow.sFlags,
-                dFlags: tcpFlow.dFlags
-            };
-
-            toUpdate[mFlowAttrs.id] = mFlowAttrs;
+            var k = unordered;
+            toUpdate.push("src_"+k);
+            toUpdate.push(flow.src);
+            toUpdate.push("dst_"+k);
+            toUpdate.push(flow.dst);
+            toUpdate.push("st_"+k);
+            toUpdate.push(state);
         } else {
 //            console.log("unhandled ip packet", raw);
         }
     });
 
-    var cmd = [];
-    for(var k in toUpdate) {
-        var o = toUpdate[k];
-        cmd.push("src_"+k);
-        cmd.push(o.src);
-        cmd.push("dst_"+k);
-        cmd.push(o.dst);
-        cmd.push("st_"+k);
-        cmd.push(o.state);
-    }
-
-    rclient.mset(cmd, function() {});
+    rclient.mset(toUpdate, function() {});
 });
 
 if(argv.d) {
