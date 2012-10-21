@@ -1,0 +1,19 @@
+---
+- hosts: newmanage.research-infrastructures.eu
+  user: root
+  gather_facts: False
+  vars:
+    - branch: master
+
+  tasks:
+    - name: deploy
+      action: git repo=git://gitorious.research-infrastructures.eu/infrastructure-management/nodeflow.git dest=/srv/nodeflow version=$branch
+      notify:
+        - Restart nodeflow app
+
+    - name: update npm deps
+      action: shell cd /srv/nodeflow; npm install
+
+  handlers:
+    - name: Restart nodeflow app
+      action: service name=nodeflow state=restarted
