@@ -45,7 +45,7 @@ module.exports = function(grunt) {
     }
 
     grunt.registerTask('dev', cmd('node app -d'));
-    grunt.registerTask('replay', cmd('flow-send <flows 0/127.0.0.1/9996 -x 600'));
+    grunt.registerTask('replay', cmd('flow-send <flows 0/127.0.0.1/9996 -x 1000'));
     grunt.registerTask('record', cmd('flow-receive >flows 0/0/9996'));
     grunt.registerTask('cleandb', cmd("redis-cli flushall"));
     grunt.registerTask('countdb', cmd("redis-cli keys 'st_*' | wc -l"));

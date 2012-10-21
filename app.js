@@ -38,10 +38,10 @@ var app = new Collector(function (err) {
     if(pdus % 100 == 0)
         console.log("GOT PACKET:", packetCount, "PDU: ", pdus);
 
-    var toUpdate = [];
+    var timestamp = nflow.header.unix_secs * 1000 + nflow.header.unix_nsecs / 1000000;
 
     nflow.v5Flows.forEach(function(raw) {
-        var netflow = ip.parsePacket(raw);
+        var netflow = ip.parsePacket(raw, timestamp);
         if(netflow) {
             var unordered = netflow.unordered();
 
@@ -68,19 +68,27 @@ var app = new Collector(function (err) {
 
 //            console.log("got tcp netflow " + flow.src + " -> " + flow.dst + " (0x"+sFlags.toString(16)+" 0x"+dFlags.toString(16)+") state: " + state);
 
+            var cmd = [];
             var k = unordered;
-            toUpdate.push("src_"+k);
-            toUpdate.push(flow.src);
-            toUpdate.push("dst_"+k);
-            toUpdate.push(flow.dst);
-            toUpdate.push("st_"+k);
-            toUpdate.push(state);
+            cmd.push("src_"+k);
+            cmd.push(flow.src);
+            cmd.push("dst_"+k);
+            cmd.push(flow.dst);
+            cmd.push("st_"+k);
+            cmd.push(state);
+            cmd.push("last_"+k);
+            cmd.push(netflow.last);
+
+            rclient.mset(cmd, function() {});
+
+            rclient.expire("src_"+k, 60 * 10);
+            rclient.expire("dst_"+k, 60 * 10);
+            rclient.expire("st_"+k, 60 * 10);
         } else {
 //            console.log("unhandled ip packet", raw);
         }
     });
 
-    rclient.mset(toUpdate, function() {});
 });
 
 if(argv.d) {
