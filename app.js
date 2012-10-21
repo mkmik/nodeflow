@@ -24,6 +24,8 @@ var db = LRU({
 
 var port = argv.p || 9996;
 
+var packetCount = 0;
+var pdus = 0;
 
 var app = new Collector(function (err) {
     if(err != null) {
@@ -33,6 +35,12 @@ var app = new Collector(function (err) {
 .on("listening",function() { console.log("listening", port); } )
 
 .on("packet",function(nflow) {
+    packetCount++;
+    pdus += nflow.v5Flows.length;
+
+    if(packetCount % 100 == 0)
+        console.log("GOT PACKET:", packetCount, "PDU: ", pdus);
+
     var toUpdate = {};
 
     nflow.v5Flows.forEach(function(raw) {
@@ -60,7 +68,7 @@ var app = new Collector(function (err) {
 
             var state = tcpFlow.state();
 
-            console.log("got tcp netflow " + flow.src + " -> " + flow.dst + " (0x"+sFlags.toString(16)+" 0x"+dFlags.toString(16)+") state: " + state);
+//            console.log("got tcp netflow " + flow.src + " -> " + flow.dst + " (0x"+sFlags.toString(16)+" 0x"+dFlags.toString(16)+") state: " + state);
 
             var mFlowAttrs = {
                 id: netflow.unordered(),
@@ -77,7 +85,6 @@ var app = new Collector(function (err) {
         }
     });
 
-    console.log("WRITING");
 
     function store(attrs) {
         var flow = new Flow(attrs);
