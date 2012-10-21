@@ -5,22 +5,19 @@ var reloader = require('reloader');
 var ip = require('./lib/ip');
 var argv = require('optimist').argv;
 var LRU = require("lru-cache");
-var mongoose = require('mongoose');
-
-var mdb = mongoose.createConnection('localhost', 'nodeflow');
-var flowSchema = mongoose.Schema({
-    id: 'string',
-    src: 'string',
-    dst: 'string',
-    state: 'string'
-}, { strict: false });
-
-var Flow = mdb.model('Flow', flowSchema);
+var redis = require("redis");
 
 var db = LRU({
     max: 500000,
     maxAge: 1000 * 600
 });
+
+var rclient = redis.createClient();
+
+rclient.on("error", function (err) {
+    console.log("Redis error " + err);
+});
+
 
 var port = argv.p || 9996;
 
@@ -38,7 +35,7 @@ var app = new Collector(function (err) {
     packetCount++;
     pdus += nflow.v5Flows.length;
 
-    if(packetCount % 100 == 0)
+    if(pdus % 100 == 0)
         console.log("GOT PACKET:", packetCount, "PDU: ", pdus);
 
     var toUpdate = {};
@@ -95,21 +92,9 @@ var app = new Collector(function (err) {
     }
 
     for(var k in toUpdate) {
-        var attrs = toUpdate[k];
-
-        Flow.findOne({id:attrs.id}, function(err, obj) {
-            var boundAttrs = attrs;
-            if(obj) {
-                obj.remove(function(err) {
-                    if(err)
-                        console.log("CANNOT REMOVE", obj);
-                    else
-                        store(boundAttrs);
-                });
-            } else {
-                store(boundAttrs);
-            }
-        });
+        var o = toUpdate[k];
+        //rclient.hmset("c_"+k, 'src', o.src, 'dst', o.dst, 'state', o.state);
+        rclient.mset("src_"+k, o.src, 'dst_'+k, o.dst, 'st_'+k, o.state);
     }
 });
 

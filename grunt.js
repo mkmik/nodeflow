@@ -47,8 +47,8 @@ module.exports = function(grunt) {
     grunt.registerTask('dev', cmd('node app -d'));
     grunt.registerTask('replay', cmd('flow-send <flows 0/127.0.0.1/9996 -x 1500'));
     grunt.registerTask('record', cmd('flow-receive >flows 0/0/9996'));
-    grunt.registerTask('cleandb', cmd("mongo nodeflow --quiet --eval 'db.flows.drop()'"));
-    grunt.registerTask('countdb', cmd("mongo nodeflow --quiet --eval 'db.flows.count()'"));
-    grunt.registerTask('stats', cmd("mongo nodeflow --quiet --eval 'db.flows.aggregate([{$group:{_id:\"$state\", count: {$sum: 1}}}]).result.forEach(function(e) { print(e._id, e.count) })'"));
+    grunt.registerTask('cleandb', cmd("redis-cli flushall"));
+    grunt.registerTask('countdb', cmd("redis-cli keys 'st_*' | wc -l"));
+    grunt.registerTask('stats', cmd("scripts/stat.py"));
     grunt.registerTask('capture', cmd('sudo uacctd -f conf/uacctd.conf -L 131072'));
 };
