@@ -45,10 +45,10 @@ module.exports = function(grunt) {
     }
 
     grunt.registerTask('dev', cmd('node app -d'));
-    grunt.registerTask('replay', cmd('flow-send <flows 0/127.0.0.1/9996 -x 1'));
+    grunt.registerTask('replay', cmd('flow-send <flows 0/127.0.0.1/9996 -x 50'));
     grunt.registerTask('record', cmd('flow-receive >flows 0/0/9996'));
     grunt.registerTask('cleandb', cmd("mongo nodeflow --quiet --eval 'db.flows.drop()'"));
     grunt.registerTask('countdb', cmd("mongo nodeflow --quiet --eval 'db.flows.count()'"));
     grunt.registerTask('stats', cmd("mongo nodeflow --quiet --eval 'db.flows.aggregate([{$group:{_id:\"$state\", count: {$sum: 1}}}]).result.forEach(function(e) { print(e._id, e.count) })'"));
-    grunt.registerTask('capture', cmd('sudo uacctd -f conf/uacctd.conf'));
+    grunt.registerTask('capture', cmd('sudo uacctd -f conf/uacctd.conf -L 131072'));
 };
