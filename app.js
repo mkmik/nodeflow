@@ -82,15 +82,6 @@ var app = new Collector(function (err) {
         }
     });
 
-
-    function store(attrs) {
-        var flow = new Flow(attrs);
-        flow.save(function(err) {
-            if(err)
-                console.log("CANNOT SAVE", flow);
-        });
-    }
-
     var cmd = [];
     for(var k in toUpdate) {
         var o = toUpdate[k];
