@@ -44,7 +44,8 @@ def show(s, k):
 keys = c.keys('st_*')
 if keys:
     for k, s in zip(keys, c.mget(keys)):
-        if args.s and s == args.s:
-            show(s, k)
+        if args.s:
+            if s == args.s:
+                show(s, k)
         else:
             show(s, k)
