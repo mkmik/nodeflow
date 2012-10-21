@@ -91,11 +91,18 @@ var app = new Collector(function (err) {
         });
     }
 
+    var cmd = [];
     for(var k in toUpdate) {
         var o = toUpdate[k];
-        //rclient.hmset("c_"+k, 'src', o.src, 'dst', o.dst, 'state', o.state);
-        rclient.mset("src_"+k, o.src, 'dst_'+k, o.dst, 'st_'+k, o.state);
+        cmd.push("src_"+k);
+        cmd.push(o.src);
+        cmd.push("dst_"+k);
+        cmd.push(o.dst);
+        cmd.push("st_"+k);
+        cmd.push(o.state);
     }
+
+    rclient.mset(cmd, function() {});
 });
 
 if(argv.d) {
