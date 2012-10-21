@@ -48,7 +48,7 @@ var app = new Collector(function (err) {
             var key;
             key = netflow.ordered() + "_flags";
             var oldFlags = db.get(key);
-            db.set(key, (oldFlags || 0) | netflow.rawFlags);
+            db.set(key, (oldFlags || 0) | netflow.flags);
 
             key = unordered + "_flow" ;
             var flow;
