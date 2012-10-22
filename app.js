@@ -47,8 +47,10 @@ var app = new Collector(function (err) {
 
     var lastSequence = (exporters[rinfo.address] || {}).lastSequence || nflow.header.flow_sequence;
     var lostFrames = (exporters[rinfo.address] || {}).lostFrames || 0;
-    if(nflow.header.flow_sequence > lastSequence)
-        lostFrames += nflow.header.flow_sequence - lastSequence - nflow.header.count;
+    var delta = nflow.header.flow_sequence - lastSequence - nflow.header.count;
+
+    if(delta > 0)
+        lostFrames += delta;
 
     exporters[rinfo.address] = { lastSequence: nflow.header.flow_sequence, lostFrames: lostFrames};
 
