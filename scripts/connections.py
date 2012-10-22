@@ -73,7 +73,7 @@ def show(s, k):
         times = ""
         if args.t:
             ttl = c.ttl('src_'+key)
-            age = int(time.time()) - int(float(c.get('last_'+key)) / 1000)
+            age = 60*10 - ttl
             times = "(ttl: %ss, age: %ss)" % (ttl, age)
 
         def render():
