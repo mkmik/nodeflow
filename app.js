@@ -1,7 +1,7 @@
 'use strict';
 
 var monitoring = require('./monitoring');
-var Collector = require("Netflow");
+var Collector = require("./lib/Netflow");
 var reloader = require('reloader');
 var ip = require('./lib/ip');
 var argv = require('optimist').argv;
@@ -36,7 +36,7 @@ var app = new Collector(function (err) {
 })
 .on("listening",function() { console.log("listening", port); } )
 
-.on("packet",function(nflow) {
+.on("packet",function(nflow, rinfo) {
     packetCount++;
     pdus += nflow.v5Flows.length;
 
@@ -44,7 +44,7 @@ var app = new Collector(function (err) {
         console.log("GOT PACKET:", packetCount, "PDU: ", pdus);
 
     var timestamp = nflow.header.unix_secs * 1000 + nflow.header.unix_nsecs / 1000000;
-    exporters[nflow.header.engine_id] = { lastSequence: nflow.header.flow_sequence};
+    exporters[rinfo.address] = { lastSequence: nflow.header.flow_sequence};
 
     nflow.v5Flows.forEach(function(raw) {
         byProto[raw.prot] = 1 + (byProto[raw.prot] || 0);
