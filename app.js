@@ -1,5 +1,6 @@
 'use strict';
 
+var monitoring = require('./monitoring');
 var Collector = require("Netflow");
 var reloader = require('reloader');
 var ip = require('./lib/ip');
@@ -20,9 +21,11 @@ rclient.on("error", function (err) {
 
 
 var port = argv.p || 9996;
+var mon_port = argv.m || port+1;
 
 var packetCount = 0;
 var pdus = 0;
+var byProto = {};
 
 var app = new Collector(function (err) {
     if(err != null) {
@@ -41,6 +44,8 @@ var app = new Collector(function (err) {
     var timestamp = nflow.header.unix_secs * 1000 + nflow.header.unix_nsecs / 1000000;
 
     nflow.v5Flows.forEach(function(raw) {
+        byProto[raw.prot] = 1 + (byProto[raw.prot] || 0);
+
         var netflow = ip.parsePacket(raw, timestamp);
         if(netflow) {
 //            console.log("GOT FLOW", netflow);
@@ -103,12 +108,25 @@ var app = new Collector(function (err) {
 
 });
 
+monitoring.app.get('/', function (req, res, next) {
+    res.json({
+        stats: {
+            packetCount: packetCount,
+            pdus: pdus,
+            byProto: byProto
+        }
+    });
+});
+
+
 if(argv.d) {
     reloader({
         watchModules: true,
         onReload: function () {
             app.listen(port);
+            monitoring.listen(mon_port);
         }});
 } else {
     app.listen(port);
+    monitoring.listen(mon_port);
 }
