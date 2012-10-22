@@ -44,7 +44,12 @@ var app = new Collector(function (err) {
         console.log("GOT PACKET:", packetCount, "PDU: ", pdus);
 
     var timestamp = nflow.header.unix_secs * 1000 + nflow.header.unix_nsecs / 1000000;
-    exporters[rinfo.address] = { lastSequence: nflow.header.flow_sequence};
+
+    var lastSequence = (exporters[rinfo.address] || {}).lastSequence || (nflow.header.flow_sequence - nflow.header.count);
+    var lostFrames = (exporters[rinfo.address] || {}).lostFrames || 0;
+    lostFrames += nflow.header.flow_sequence - lastSequence - nflow.header.count;
+
+    exporters[rinfo.address] = { lastSequence: nflow.header.flow_sequence, lostFrames: lostFrames};
 
     nflow.v5Flows.forEach(function(raw) {
         byProto[raw.prot] = 1 + (byProto[raw.prot] || 0);
