@@ -94,6 +94,7 @@ var app = new Collector(function (err) {
                 rclient.expire("src_"+k, 60 * 10);
                 rclient.expire("dst_"+k, 60 * 10);
                 rclient.expire("st_"+k, 60 * 10);
+                rclient.expire("last_"+k, 60 * 10);
             });
         } else {
 //            console.log("unhandled ip packet", raw);
