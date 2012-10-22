@@ -45,9 +45,10 @@ var app = new Collector(function (err) {
 
     var timestamp = nflow.header.unix_secs * 1000 + nflow.header.unix_nsecs / 1000000;
 
-    var lastSequence = (exporters[rinfo.address] || {}).lastSequence || (nflow.header.flow_sequence - nflow.header.count);
+    var lastSequence = (exporters[rinfo.address] || {}).lastSequence || nflow.header.flow_sequence;
     var lostFrames = (exporters[rinfo.address] || {}).lostFrames || 0;
-    lostFrames += nflow.header.flow_sequence - lastSequence - nflow.header.count;
+    if(nflow.header.flow_sequence > lastSequence)
+        lostFrames += nflow.header.flow_sequence - lastSequence - nflow.header.count;
 
     exporters[rinfo.address] = { lastSequence: nflow.header.flow_sequence, lostFrames: lostFrames};
 
