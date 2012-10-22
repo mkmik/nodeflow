@@ -77,14 +77,12 @@ var app = new Collector(function (err) {
 
                 db.set(key, (oldFlags || 0) | netflow.flags);
 
-                key = unordered + "_flow" ;
+
                 var flow;
                 if(netflow.sport > netflow.dport)
                     flow = {src: netflow.srcEndpoint(), dst: netflow.dstEndpoint()};
                 else
                     flow = {src: netflow.dstEndpoint(), dst: netflow.srcEndpoint()};
-
-                db.set(key, flow);
 
                 var sFlags = db.get(flow.src + "_" + flow.dst + "_flags") || 0;
                 var dFlags = db.get(flow.dst + "_" + flow.src + "_flags") || 0;
