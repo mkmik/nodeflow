@@ -3,6 +3,7 @@
 import argparse
 import redis
 import socket
+import time
 
 from collections import defaultdict
 
@@ -13,6 +14,7 @@ parser.add_argument('--sport', help="only this source port", required=False)
 parser.add_argument('--port', help="only this port (src or dest)", required=False)
 parser.add_argument('-r', action="store_false", help="don't parse src/dest", required=False)
 parser.add_argument('-n', action="store_true", help="resolve names", required=False)
+parser.add_argument('-t', action="store_true", help="show times (entry ttl, and age of last packet)", required=False)
 args = parser.parse_args()
 
 
@@ -68,13 +70,19 @@ def show(s, k):
         key = k[3:]
         src, dst = c.mget('src_'+key, 'dst_'+key)
 
+        times = ""
+        if args.t:
+            ttl = c.ttl('src_'+key)
+            age = (int(time.time()), int(float(c.get('last_'+key)) / 1000))
+            times = "(ttl: ~%ss, age: %ss)" % (ttl, age)
+
         def render():
             if args.n:
                 srcip, sport = src.split(':')
                 dstip, dport = dst.split(':')
-                print s, get_hostname(srcip)+':' + sport, '->', get_hostname(dstip) +':' + dport
+                print s, get_hostname(srcip)+':' + sport, '->', get_hostname(dstip) +':' + dport, times
             else:
-                print s, src, '->', dst
+                print s, src, '->', dst, times
 
         if args.port:
             if (src.endswith(':'+args.port) or dst.endswith(':'+args.port)):
@@ -88,7 +96,7 @@ def show(s, k):
         else:
             render()
     else:
-        print s, k
+        print s, k, times
 
 keys = c.keys('st_*')
 if keys:
