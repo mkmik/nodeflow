@@ -72,7 +72,7 @@ def show(s, k):
 
         times = ""
         if args.t:
-            ttl = c.ttl('src_'+key)
+            ttl = c.ttl('src_'+key) or 0
             age = 60*10 - ttl
             times = "(ttl: %ss, age: %ss)" % (ttl, age)
 
