@@ -113,7 +113,8 @@ monitoring.app.get('/', function (req, res, next) {
         stats: {
             packetCount: packetCount,
             pdus: pdus,
-            byProto: byProto
+            byProto: byProto,
+            cacheLength: db.length
         }
     });
 });
