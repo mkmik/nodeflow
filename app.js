@@ -27,6 +27,8 @@ var packetCount = 0;
 var pdus = 0;
 var byProto = {};
 
+var exporters = {};
+
 var app = new Collector(function (err) {
     if(err != null) {
         console.log("ERROR ERROR \n"+err);
@@ -42,6 +44,7 @@ var app = new Collector(function (err) {
         console.log("GOT PACKET:", packetCount, "PDU: ", pdus);
 
     var timestamp = nflow.header.unix_secs * 1000 + nflow.header.unix_nsecs / 1000000;
+    exporters[nflow.header.engine_id] = { lastSequence: nflow.header.flow_sequence};
 
     nflow.v5Flows.forEach(function(raw) {
         byProto[raw.prot] = 1 + (byProto[raw.prot] || 0);
@@ -115,7 +118,8 @@ monitoring.app.get('/', function (req, res, next) {
             pdus: pdus,
             byProto: byProto,
             cacheLength: db.length
-        }
+        },
+        exporters: exporters
     });
 });
 
