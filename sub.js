@@ -10,6 +10,8 @@ sock.connect('tcp://127.0.0.1:3412');
 
 var rclient = redis.createClient();
 
+var ttl = 60 * 60;
+
 sock.on("message", function(data) {
     data = JSON.parse(data);
     var timestamp = data.timestamp;
@@ -27,9 +29,9 @@ sock.on("message", function(data) {
                 rclient.incrby('packets_' + connectionKey, raw.dPkts);
                 rclient.incrby('octets_' + connectionKey, raw.dOctets);
 
-                rclient.expire('conns_' + connectionKey, 60 * 10);
-                rclient.expire('packets_' + connectionKey, 60 * 10);
-                rclient.expire('octets_' + connectionKey, 60 * 10);
+                rclient.expire('conns_' + connectionKey, ttl);
+                rclient.expire('packets_' + connectionKey, ttl);
+                rclient.expire('octets_' + connectionKey, ttl);
             }
         }
     });
