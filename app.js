@@ -6,6 +6,7 @@ var reloader = require('reloader');
 var ip = require('./lib/ip');
 var argv = require('optimist').argv;
 var LRU = require("lru-cache");
+var fork = require('child_process').fork;
 
 var zmq = require('zmq')
   , sock = zmq.socket('push');
@@ -21,6 +22,18 @@ var pdus = 0;
 var byProto = {};
 
 var exporters = {};
+
+
+var child;
+function spawnSub() {
+    child = fork('./sub');
+    child.on('exit', function (code) {
+        console.log('sub process is dead' + code);
+
+        spawnSub();
+    });
+}
+spawnSub();
 
 var app = new Collector(function (err) {
     if(err != null) {
