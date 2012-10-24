@@ -35,6 +35,11 @@ function spawnSub() {
 }
 spawnSub();
 
+process.on('SIGHUP', function () {
+    console.log('Got SIGHUP, restarting worker');
+    child.kill();
+});
+
 var app = new Collector(function (err) {
     if(err != null) {
         console.log("ERROR ERROR \n"+err);
