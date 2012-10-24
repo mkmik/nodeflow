@@ -28,6 +28,8 @@
         "lru-cache": "*",
         "mongoose": "*",
         "redis": "*",
+        "hiredis": "*",
+        "zmq": "*",
         "reloader": "*"
     }
 }
