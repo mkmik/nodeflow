@@ -12,24 +12,25 @@ var rclient = redis.createClient();
 
 sock.on("message", function(data) {
     data = JSON.parse(data);
-    var raw = data.raw;
     var timestamp = data.timestamp;
 
-    var netflow = ip.parsePacket(raw, timestamp);
-    if(netflow) {
-        if(netflow.dport > netflow.sport) {
-            // reply
-            return;
-        } else {
-            var connectionKey = netflow.directed();
-            if(netflow.parsedFlags.SYN)
-                rclient.incr('conns_' + connectionKey);
-            rclient.incrby('packets_' + connectionKey, raw.dPkts);
-            rclient.incrby('octets_' + connectionKey, raw.dOctets);
+    data.flows.forEach(function(raw) {
+        var netflow = ip.parsePacket(raw, timestamp);
+        if(netflow) {
+            if(netflow.dport > netflow.sport) {
+                // reply
+                return;
+            } else {
+                var connectionKey = netflow.directed();
+                if(netflow.parsedFlags.SYN)
+                    rclient.incr('conns_' + connectionKey);
+                rclient.incrby('packets_' + connectionKey, raw.dPkts);
+                rclient.incrby('octets_' + connectionKey, raw.dOctets);
 
-            rclient.expire('conns_' + connectionKey, 60 * 10);
-            rclient.expire('packets_' + connectionKey, 60 * 10);
-            rclient.expire('octets_' + connectionKey, 60 * 10);
+                rclient.expire('conns_' + connectionKey, 60 * 10);
+                rclient.expire('packets_' + connectionKey, 60 * 10);
+                rclient.expire('octets_' + connectionKey, 60 * 10);
+            }
         }
-    }
+    });
 });

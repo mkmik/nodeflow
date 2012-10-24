@@ -65,13 +65,14 @@ var app = new Collector(function (err) {
 
     exporters[rinfo.address] = { lastSequence: nflow.header.flow_sequence, lostFrames: lostFrames};
 
+    sock.send(JSON.stringify({
+        timestamp: timestamp,
+        flows: nflow.v5Flows.filter(function(f) { return f.prot == 6})
+    }));
+
     nflow.v5Flows.forEach(function(raw) {
         byProto[raw.prot] = 1 + (byProto[raw.prot] || 0);
-
-        if(raw.prot == 6)
-            sock.send(JSON.stringify({raw:raw, timestamp:timestamp}));
     });
-
 });
 
 monitoring.app.get('/', function (req, res, next) {
