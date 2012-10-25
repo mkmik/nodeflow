@@ -17,9 +17,14 @@ console.log('Producer bound to port 3412');
 var port = argv.p || 9996;
 var mon_port = argv.m || port+1;
 
-var packetCount = 0;
+var uptime = new Date();
+
+var nflowPacketCount = 0;
 var pdus = 0;
-var byProto = {};
+var packetCount = 0;
+var octetCount = 0;
+var byProtoPackets = {};
+var byProtoOctets = {};
 
 var exporters = {};
 
@@ -48,7 +53,7 @@ var app = new Collector(function (err) {
 .on("listening",function() { console.log("listening", port); } )
 
 .on("packet",function(nflow, rinfo) {
-    packetCount++;
+    nflowPacketCount++;
     pdus += nflow.v5Flows.length;
 
     if(pdus % 100 == 0)
@@ -71,16 +76,23 @@ var app = new Collector(function (err) {
     }));
 
     nflow.v5Flows.forEach(function(raw) {
-        byProto[raw.prot] = 1 + (byProto[raw.prot] || 0);
+        packetCount = packetCount + raw.dPkts;
+        octetCount = octetCount + raw.dOctets;
+        byProtoPackets[raw.prot] = raw.dPkts + (byProtoPackets[raw.prot] || 0);
+        byProtoOctets[raw.prot] = raw.dOctets + (byProtoOctets[raw.prot] || 0);
     });
 });
 
 monitoring.app.get('/', function (req, res, next) {
     res.json({
+        uptime: uptime,
         stats: {
-            packetCount: packetCount,
+            nflowPacketCount: packetCount,
             pdus: pdus,
-            byProto: byProto
+            packetCount: packetCount,
+            octetCount: octetCount,
+            byProtoPackets: byProtoPackets,
+            byProtoOctets: byProtoOctets,
         },
         exporters: exporters
     });
